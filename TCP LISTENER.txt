@@ -1,0 +1,86 @@
+using System;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+
+namespace hl7messagestore
+{
+    class Program
+    {
+        private static readonly string folderPath = "C:\\HL7Messages";
+        static void Main(string[] args)
+        {
+            TcpListener server = null;
+            try
+            {
+                // Set the port number for the listener.
+                int port = 8888;
+                IPAddress localAddr = IPAddress.Parse("10.20.25.19");
+
+                // Create a TcpListener.
+                server = new TcpListener(localAddr, port);
+
+                // Start listening for client requests.
+                server.Start();
+
+                Console.WriteLine("Waiting for a connection...");
+                while (true)
+                {
+                    TcpClient client = server.AcceptTcpClient();
+                    Console.WriteLine("Connected!");
+
+                    // Get the network stream from the client.
+                    NetworkStream stream = client.GetStream();
+
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        // Read the data from the client.
+                        string message = reader.ReadToEnd();
+                        Console.WriteLine("Received: {0}", message.Trim());
+
+                        // Skip empty messages.
+                        if (string.IsNullOrWhiteSpace(message))
+                        {
+                            Console.WriteLine("Empty message received.");
+                            continue;
+                        }
+
+                        // Store the HL7 message in a file in the specified folder.
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+                        string fileName = string.Format("{0}.txt", DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss"));
+                        string filePath = Path.Combine(folderPath, fileName);
+                        using (StreamWriter writer = new StreamWriter(filePath))
+                        {
+                            writer.Write(message);
+                        }
+
+                        // Send a response back to the client.
+                        byte[] response = Encoding.ASCII.GetBytes("ACK");
+                        stream.Write(response, 0, response.Length);
+                        Console.WriteLine("Sent: {0}", "ACK");
+                    }
+
+                    // Close the client connection.
+                    client.Close();
+                    Console.WriteLine("Waiting for a connection...");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: {0}", e);
+            }
+            finally
+            {
+                // Stop listening for new clients.
+                server.Stop();
+            }
+
+            Console.WriteLine("\nHit enter to continue...");
+            Console.Read();
+        }
+    }
+}

@@ -1,0 +1,767 @@
+using System;
+using System.IO;
+using System.Xml;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string inputFolderPath = @"C:\Output";
+        string outputFolderPath = @"C:\f";
+
+        if (!Directory.Exists(inputFolderPath))
+        {
+            Console.WriteLine("Input folder not found!");
+            return;
+        }
+
+        if (!Directory.Exists(outputFolderPath))
+        {
+            Directory.CreateDirectory(outputFolderPath);
+        }
+
+        foreach (string inputFilePath in Directory.GetFiles(inputFolderPath, "*.txt"))
+        {
+            string outputFilePath = Path.Combine(outputFolderPath, Path.GetFileNameWithoutExtension(inputFilePath) + ".txt");
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(inputFilePath);
+
+            // Extract the values of certain elements using XPath expressions
+            //MSH field-------------------------------------------------------------------------------------------------
+            string fieldSeperator = doc.SelectSingleNode(".//MSH.1")?.InnerText;
+            string messageType = doc.SelectSingleNode(".//MSH.8.0")?.InnerText;
+            string messageEvent = doc.SelectSingleNode(".//MSH.8.1")?.InnerText;
+            string sendingApplication = doc.SelectSingleNode(".//MSH.2")?.InnerText;
+            string sendingFacility = doc.SelectSingleNode(".//MSH.3")?.InnerText;
+            string receivingApplication = doc.SelectSingleNode(".//MSH.4")?.InnerText;
+            string receivingFacility = doc.SelectSingleNode(".//MSH.5")?.InnerText;
+            string messageDateTime = doc.SelectSingleNode(".//MSH.6")?.InnerText;
+            string messageDateTimeFormatted = "";
+            if (!string.IsNullOrEmpty(messageDateTime))
+            {
+                DateTime messageDateTimeDateTime = DateTime.ParseExact(messageDateTime, "yyyyMMddHHmm", null);
+                messageDateTimeFormatted = messageDateTimeDateTime.ToString("dd-MM-yyyy HH:mm:ss");
+            }
+            string security = doc.SelectSingleNode(".//MSH.9.0")?.InnerText;
+            string messageTypeVersion = doc.SelectSingleNode(".//MSH.12.0")?.InnerText;
+            string messageControlId = doc.SelectSingleNode(".//MSH.10.0")?.InnerText;
+            //EVN field-------------------------------------------------------------------------------------------------
+            string eventTypeCode = doc.SelectSingleNode(".//EVN.1")?.InnerText;
+            string recordedDateTime = doc.SelectSingleNode(".//EVN.2")?.InnerText;
+            string recordedDateTimeFormatted = "";
+            if (!string.IsNullOrEmpty(recordedDateTime))
+            {
+                DateTime recordedDateTimeDateTime = DateTime.ParseExact(recordedDateTime, "yyyyMMddHHmm", null);
+                recordedDateTimeFormatted = recordedDateTimeDateTime.ToString("dd-MM-yyyy HH:mm:ss");
+            }
+            string dateTimePlannedEvent = doc.SelectSingleNode(".//EVN.5")?.InnerText;
+            //PID field--------------------------------------------------------------------------------------------------
+            string patientId = doc.SelectSingleNode(".//PID.3")?.InnerText;
+            string patientFirstName = doc.SelectSingleNode(".//PID.5.1")?.InnerText;
+            string patientLastName = doc.SelectSingleNode(".//PID.5.3")?.InnerText;
+            string administrativeSex = doc.SelectSingleNode(".//PID.8")?.InnerText;
+            string patientAddress = doc.SelectSingleNode(".//PID.11.0")?.InnerText;
+            string patientCity = doc.SelectSingleNode(".//PID.11.2")?.InnerText;
+            string patientState = doc.SelectSingleNode(".//PID.11.3")?.InnerText;
+            string patientZip = doc.SelectSingleNode(".//PID.11.4")?.InnerText;
+            string patientCountry = doc.SelectSingleNode(".//PID.11.5")?.InnerText;
+            string dateOfBirth = doc.SelectSingleNode(".//PID.7")?.InnerText;
+            string dobFormatted = "";
+            if (!string.IsNullOrEmpty(dateOfBirth))
+            {
+                DateTime dobDateTime = DateTime.ParseExact(dateOfBirth, "yyyyMMdd", null);
+                dobFormatted = dobDateTime.ToString("dd-MM-yyyy");
+            }
+            string primaryLanguage = doc.SelectSingleNode(".//PID.15")?.InnerText;
+            string patientPhoneNumber = doc.SelectSingleNode(".//PID.13")?.InnerText;
+            string maritalStatus = doc.SelectSingleNode(".//PID.16")?.InnerText;
+            string ssnNumber = doc.SelectSingleNode(".//PID.19")?.InnerText;
+            //PV1 field------------------------------------------------------------------------------------------------------------------
+            string patientClass = doc.SelectSingleNode(".//PV1.2")?.InnerText;
+            string pointofCare = doc.SelectSingleNode(".//PV1.3.0")?.InnerText;
+            string room = doc.SelectSingleNode(".//PV1.3.1")?.InnerText;
+            string bed = doc.SelectSingleNode(".//PV1.3.2")?.InnerText;
+            string facilityName = doc.SelectSingleNode(".//PV1.4.3")?.InnerText;
+            string consultingDoctorIdnumber = doc.SelectSingleNode(".//PV1.9.0")?.InnerText;
+            string familyName = doc.SelectSingleNode(".//PV1.9.1")?.InnerText;
+            string givenName = doc.SelectSingleNode(".//PV1.9.2")?.InnerText;
+            string secondandFurthernames = doc.SelectSingleNode(".//PV1.9.3")?.InnerText;
+            string financialClass = doc.SelectSingleNode(".//PV1.20")?.InnerText;
+            string courtesyCode = doc.SelectSingleNode(".//PV1.22")?.InnerText;
+            string totalCharges = doc.SelectSingleNode(".//PV1.47")?.InnerText;
+            //AL1 field-----------------------------------------------------------------------------------------------------------------
+            string setId = doc.SelectSingleNode(".//AL1.1")?.InnerText;
+            string allergyTypecode = doc.SelectSingleNode(".//AL1.2.0")?.InnerText;
+
+
+
+
+            // Print the extracted values and save to file
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            {
+                //MSH field-------------------------------------------------------------------------------------------------
+                // Console.WriteLine("****MSH Fields****:");
+                //writer.WriteLine("****MSH Fields****:");
+                // check if there is any data to print
+                bool hasDatamsh = !string.IsNullOrEmpty(fieldSeperator) || !string.IsNullOrEmpty(messageType) || !string.IsNullOrEmpty(messageEvent) || !string.IsNullOrEmpty(sendingApplication) || !string.IsNullOrEmpty(sendingFacility) || !string.IsNullOrEmpty(receivingApplication) || !string.IsNullOrEmpty(receivingFacility)
+                || !string.IsNullOrEmpty(messageDateTime) || !string.IsNullOrEmpty(messageDateTimeFormatted) || !string.IsNullOrEmpty(security) || !string.IsNullOrEmpty(messageTypeVersion) || !string.IsNullOrEmpty(messageControlId);
+
+                if (hasDatamsh)
+                {
+                    // print the heading only if there is data
+                    writer.WriteLine(new string('-', 20));
+                    writer.WriteLine("****MSH Fields****:\n" + new string('-', 20));
+                }
+                if (!string.IsNullOrEmpty(fieldSeperator))
+                {
+                   // Console.WriteLine("Field Seperator: " + fieldSeperator);
+                    writer.WriteLine("Field Seperator: " + fieldSeperator);
+                }
+                if (!string.IsNullOrEmpty(messageType))
+                {
+                  //  Console.WriteLine("Message type: " + messageType);
+                    writer.WriteLine("Message type: " + messageType);
+                    switch (messageType)
+                    {
+                        case "ACK":
+                            //Console.WriteLine("Message Type: " + messageType + " - General acknowledgement");
+                            writer.WriteLine("Message Type: " + messageType + " - General acknowledgement");
+                            break;
+                        case "ADT":
+                           // Console.WriteLine("Message Type: " + messageType + " - Admit, Discharge, Transfer");
+                            writer.WriteLine("Message Type: " + messageType + " - Admit, Discharge, Transfer");
+                            break;
+                        case "BAR":
+                           // Console.WriteLine("Message Type: " + messageType + " - Add/change billing account");
+                            writer.WriteLine("Message Type: " + messageType + " - Add/change billing account");
+                            break;
+                        case "DFT":
+                            //Console.WriteLine("Message Type: " + messageType + " - Detailed financial transaction");
+                            writer.WriteLine("Message Type: " + messageType + " - Detailed financial transaction");
+                            break;
+                        case "MDM":
+                          //  Console.WriteLine("Message Type: " + messageType + " - Medical document management");
+                            writer.WriteLine("Message Type: " + messageType + " - Medical document management");
+                            break;
+                        case "MFN":
+                            //Console.WriteLine("Message Type: " + messageType + " - Master files notification");
+                            writer.WriteLine("Message Type: " + messageType + " - Master files notification");
+                            break;
+                        case "ORM":
+                           // Console.WriteLine("Message Type: " + messageType + " - Order (Pharmacy/treatment)");
+                            writer.WriteLine("Message Type: " + messageType + " - Order (Pharmacy/treatment)");
+                            break;
+                        case "ORU":
+                            //Console.WriteLine("Message Type: " + messageType + " - Observation result (unsolicited)");
+                            writer.WriteLine("Message Type: " + messageType + " - Observation result (unsolicited)");
+                            break;
+                        case "QRY":
+                            //Console.WriteLine("Message Type: " + messageType + " - Query, original mode");
+                            writer.WriteLine("Message Type: " + messageType + " - Query, original mode");
+                            break;
+                        case "RAS":
+                            //Console.WriteLine("Message Type: " + messageType + " - Pharmacy/treatment administration");
+                            writer.WriteLine("Message Type: " + messageType + " - Pharmacy/treatment administration");
+                            break;
+                        case "RDE":
+                            //Console.WriteLine("Message Type: " + messageType + " - Pharmacy/treatment encoded order");
+                            writer.WriteLine("Message Type: " + messageType + " - Pharmacy/treatment encoded order");
+                            break;
+                        case "RGV":
+                            //Console.WriteLine("Message Type: " + messageType + " - Pharmacy/treatment give");
+                            writer.WriteLine("Message Type: " + messageType + " - Pharmacy/treatment give");
+                            break;
+                        case "SIU":
+                            //Console.WriteLine("Message Type: " + messageType + " - Scheduling information unsolicited");
+                            writer.WriteLine("Message Type: " + messageType + " - Scheduling information unsolicited");
+                            break;
+                        // add other cases here
+                        default:
+                            //Console.WriteLine("Message Type: " + messageType + " - Unknown message event");
+                            writer.WriteLine("Message Type: " + messageType + " - Unknown message event");
+                            break;
+                    }
+                }
+                if (!string.IsNullOrEmpty(messageEvent))
+                {
+                    //Console.WriteLine("Message event: " + messageEvent);
+                    writer.WriteLine("Message event: " + messageEvent);
+                    switch (messageEvent)
+                    {
+                        case "A01":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Admit/visit notification");
+                            writer.WriteLine("Message event: " + messageEvent + " - Admit/visit notification");
+                            break;
+                        case "A02":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Transfer a patient");
+                            writer.WriteLine("Message event: " + messageEvent + " - Transfer a patient");
+                            break;
+                        case "A03":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Discharge/end visit");
+                            writer.WriteLine("Message event: " + messageEvent + " - Discharge/end visit");
+                            break;
+                        case "A04":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Register a patient");
+                            writer.WriteLine("Message event: " + messageEvent + " - Register a patient");
+                            break;
+                        case "A05":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Pre-admit a patient");
+                            writer.WriteLine("Message event: " + messageEvent + " - Pre-admit a patient");
+                            break;
+                        case "A06":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Change an outpatient to an inpatient");
+                            writer.WriteLine("Message event: " + messageEvent + " - Change an outpatient to an inpatient");
+                            break;
+                        case "A07":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Change an inpatient to an outpatient");
+                            writer.WriteLine("Message event: " + messageEvent + " - Change an inpatient to an outpatient");
+                            break;
+                        case "A08":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Update patient information ");
+                            writer.WriteLine("Message event: " + messageEvent + " - Update patient information ");
+                            break;
+                        case "A09":
+                            //Console.WriteLine("Message event: " + messageEvent + " -Patient departing – tracking ");
+                            writer.WriteLine("Message event: " + messageEvent + " - Patient departing – tracking ");
+                            break;
+                        case "A10":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Patient arriving – tracking ");
+                            writer.WriteLine("Message event: " + messageEvent + " - Patient arriving – tracking ");
+                            break;
+                        case "A11":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Cancel admit or visit notification ");
+                            writer.WriteLine("Message event: " + messageEvent + " - Cancel admit or visit notification ");
+                            break;
+                        case "A12":
+                            //Console.WriteLine("Message event: " + messageEvent + " - Cancel Transfer ");
+                            writer.WriteLine("Message event: " + messageEvent + " - Cancel Transfer ");
+                            break;
+                        case "A13":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Cancel discharge or end visit");
+                            writer.WriteLine("Message event: " + messageEvent + "-Cancel discharge or end visit");
+                            break;
+                        case "A14":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Pending admit");
+                            writer.WriteLine("Message event: " + messageEvent + "-Pending admit");
+                            break;
+                        case "A15":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Pending transfer");
+                            writer.WriteLine("Message event: " + messageEvent + "-Pending transfer");
+                            break;
+                        case "A16":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Pending discharge");
+                            writer.WriteLine("Message event: " + messageEvent + "-Pending discharge");
+                            break;
+                        case "A17":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Swap patients");
+                            writer.WriteLine("Message event: " + messageEvent + "-Swap patients");
+                            break;
+                        case "A18":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Merge patient data");
+                            writer.WriteLine("Message event: " + messageEvent + "-Merge patient data");
+                            break;
+                        case "A19":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Patient query");
+                            writer.WriteLine("Message event: " + messageEvent + "-Patient query");
+                            break;
+                        case "A20":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Bed status update");
+                            writer.WriteLine("Message event: " + messageEvent + "-Bed status update");
+                            break;
+
+                        case "A21":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Patient goes on a ‘leave of absence.’");
+                            writer.WriteLine("Message event: " + messageEvent + "-Patient goes on a ‘leave of absence.’");
+                            break;
+                        case "A22":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Patient returns from a ‘leave of absence.’");
+                            writer.WriteLine("Message event: " + messageEvent + "-Patient returns from a ‘leave of absence.’");
+                            break;
+                        case "A23":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Delete a patient record");
+                            writer.WriteLine("Message event: " + messageEvent + "-Delete a patient record");
+                            break;
+                        case "A24":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Link Patient data");
+                            writer.WriteLine("Message event: " + messageEvent + "-Link Patient data");
+                            break;
+                        case "A25":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Cancel pending discharge");
+                            writer.WriteLine("Message event: " + messageEvent + "-Cancel pending discharge");
+                            break;
+                        case "A26":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Cancel pending transfer");
+                            writer.WriteLine("Message event: " + messageEvent + "-Cancel pending transfer");
+                            break;
+                        case "A27":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Cancel pending admit");
+                            writer.WriteLine("Message event: " + messageEvent + "-Cancel pending admit");
+                            break;
+                        case "A28":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Add person data");
+                            writer.WriteLine("Message event: " + messageEvent + "-Add person data");
+                            break;
+                        case "A29":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Delete person data");
+                            writer.WriteLine("Message event: " + messageEvent + "-Delete person data");
+                            break;
+                        case "A30":
+                            //Console.WriteLine("Message event: " + messageEvent + "-Merge person data");
+                            writer.WriteLine("Message event: " + messageEvent + "-Merge person data");
+                            break;
+                        // add other cases here
+                        default:
+                            //Console.WriteLine("Message event: " + messageEvent + " - Unknown message event");
+                            writer.WriteLine("Message event: " + messageEvent + " - Unknown message event");
+                            break;
+                    }
+
+                }
+                if (!string.IsNullOrEmpty(sendingApplication))
+                {
+                    //Console.WriteLine("Sending Application: " + sendingApplication);
+                    writer.WriteLine("Sending Application: " + sendingApplication);
+                }
+            if (!string.IsNullOrEmpty(sendingFacility))
+                {
+                    //Console.WriteLine("Sending Facility: " + sendingFacility);
+                    writer.WriteLine("Sending Facility: " + sendingFacility);
+                }
+              if (!string.IsNullOrEmpty(receivingApplication))
+                {
+                    //Console.WriteLine("Receiving Application: " + receivingApplication);
+                    writer.WriteLine("Receiving Application: " + receivingApplication);
+                }
+                 if (!string.IsNullOrEmpty(receivingFacility))
+                  {
+                     //Console.WriteLine("Receiving Facility: " + receivingFacility);
+                  writer.WriteLine("Receiving Facility:  " + receivingFacility);
+                 }
+                if (!string.IsNullOrEmpty(messageDateTime))
+                {
+                    //Console.WriteLine("Message DateTime: " + messageDateTime);
+                    writer.WriteLine("Message DateTime: " + messageDateTime);
+                }
+                if (!string.IsNullOrEmpty(messageDateTimeFormatted))
+                {
+                    //Console.WriteLine("Message Date Time: " + messageDateTimeFormatted);
+                    writer.WriteLine("Message Date Time: " + messageDateTimeFormatted);
+                }
+                if (!string.IsNullOrEmpty(security))
+                {
+                    //Console.WriteLine("security: " + security);
+                    writer.WriteLine("security " + security);
+                }
+                if (!string.IsNullOrEmpty(messageTypeVersion))
+                {
+                    //Console.WriteLine("Message type version: " + messageTypeVersion);
+                    writer.WriteLine("Message type version: " + messageTypeVersion);
+                }
+                if (!string.IsNullOrEmpty(messageControlId))
+                {
+                    //Console.WriteLine("Message ControlId: " + messageControlId);
+                    writer.WriteLine("Message ControlId: " + messageControlId);
+                }
+                //EVN field-----------------------------------------------------------------------------------------------
+                //Console.WriteLine("****EVN Fields****:");
+                // writer.WriteLine("****EVN Fields****:");
+                // check if there is any data to print
+                bool hasDataevn = !string.IsNullOrEmpty(eventTypeCode) || !string.IsNullOrEmpty(recordedDateTimeFormatted) || !string.IsNullOrEmpty(dateTimePlannedEvent);
+
+                if (hasDataevn)
+                {
+                    // print the heading only if there is data
+                    //writer.WriteLine("****EVN Fields****:");
+                    writer.WriteLine(new string('-', 20));
+                    writer.WriteLine("****EVN Fields****:\n" + new string('-', 20));
+
+                }
+                if (!string.IsNullOrEmpty(eventTypeCode))
+                {
+                    //Console.WriteLine("Event type code: " + eventTypeCode);
+                    writer.WriteLine("Event type code:  " + eventTypeCode);
+                }
+             //   if (!string.IsNullOrEmpty(recordedDateTime))
+             //   {
+             //       Console.WriteLine("Recorded datetime: " + recordedDateTime);
+             //       writer.WriteLine("Recorded datetime:" + recordedDateTime);
+             //   }
+                if (!string.IsNullOrEmpty(recordedDateTimeFormatted))
+                {
+                    //Console.WriteLine("Record Date Time: " + recordedDateTimeFormatted);
+                    writer.WriteLine("Record Date Time: " + recordedDateTimeFormatted);
+                }
+                if (!string.IsNullOrEmpty(dateTimePlannedEvent))
+                {
+                    //Console.WriteLine("Datetime planned event: " + dateTimePlannedEvent);
+                    writer.WriteLine("Datetime planned event:" + dateTimePlannedEvent);
+                }
+
+                //PID field-----------------------------------------------------------------------------------------------
+                //Console.WriteLine("PID Fields:");
+                //writer.WriteLine("PID Fields:");
+                // check if there is any data to print
+                bool hasDatapid = !string.IsNullOrEmpty(patientId) || !string.IsNullOrEmpty(patientFirstName) || !string.IsNullOrEmpty(patientLastName) || !string.IsNullOrEmpty(administrativeSex) || !string.IsNullOrEmpty(patientAddress) || !string.IsNullOrEmpty(patientCity)
+                || !string.IsNullOrEmpty(patientState) || !string.IsNullOrEmpty(patientZip) || !string.IsNullOrEmpty(patientCountry) || !string.IsNullOrEmpty(dobFormatted) || !string.IsNullOrEmpty(patientPhoneNumber) || !string.IsNullOrEmpty(primaryLanguage) || !string.IsNullOrEmpty(maritalStatus) || !string.IsNullOrEmpty(ssnNumber);
+
+                if (hasDatapid)
+                {
+                    // print the heading only if there is data
+                    writer.WriteLine(new string('-', 20));
+                    writer.WriteLine("****PID Fields****:\n" + new string('-', 20));
+                }
+                if (!string.IsNullOrEmpty(patientId))
+                {
+                    //Console.WriteLine("Patient ID: " + patientId);
+                    writer.WriteLine("Patient ID: " + patientId);
+                }
+                if (!string.IsNullOrEmpty(patientFirstName))
+                {
+                    //Console.WriteLine("Patient first name: " + patientFirstName);
+                    writer.WriteLine("Patient first name: " + patientFirstName);
+                }
+                if (!string.IsNullOrEmpty(patientLastName))
+                {
+                    //Console.WriteLine("Patient last name: " + patientLastName);
+                    writer.WriteLine("Patient last name: " + patientLastName);
+                }
+                if (!string.IsNullOrEmpty(administrativeSex))
+                {
+                    //Console.WriteLine("Administrative Sex: " + administrativeSex);
+                    writer.WriteLine("Administrative Sex: " + administrativeSex);
+                    switch (administrativeSex)
+                    {
+                        case "A":
+                            //Console.WriteLine("Administrative Sex: " + administrativeSex + " - Ambiguous");
+                            writer.WriteLine("Administrative Sex: " + administrativeSex + " - Ambiguous");
+                            break;
+                        case "M":
+                            //Console.WriteLine("Administrative Sex:" + administrativeSex + " - Male");
+                            writer.WriteLine("Administrative Sex: " + administrativeSex + " - Male");
+                            break;
+                        case "F":
+                            //Console.WriteLine("Administrative Sex: " + administrativeSex + " - Female");
+                            writer.WriteLine("Administrative Sex: " + administrativeSex + " - Female");
+                            break;
+                        case "N":
+                            //Console.WriteLine("Administrative Sex: " + administrativeSex + " - Not Applicable");
+                            writer.WriteLine("Administrative Sex: " + administrativeSex + " - Not Applicable");
+                            break;
+                        case "O":
+                            //Console.WriteLine("Administrative Sex: " + administrativeSex + " - Other");
+                            writer.WriteLine("Administrative Sex: " + administrativeSex + " - Other");
+                            break;
+                        // add other cases here
+                        default:
+                            //Console.WriteLine("Administrative Sex: " + administrativeSex + " - Unknown");
+                            writer.WriteLine("Administrative Sex: " + administrativeSex + " - Unknown");
+                            break;
+                    }
+                }
+                if (!string.IsNullOrEmpty(patientAddress))
+                {
+                    //Console.WriteLine("Patient address: " + patientAddress);
+                    writer.WriteLine("Patient address: " + patientAddress);
+                }
+                if (!string.IsNullOrEmpty(patientCity))
+                {
+                    //Console.WriteLine("Patient city: " + patientCity);
+                    writer.WriteLine("Patient city: " + patientCity);
+                }
+                if (!string.IsNullOrEmpty(patientState))
+                {
+                    //Console.WriteLine("Patient state: " + patientState);
+                    writer.WriteLine("Patient state: " + patientState);
+                }
+                if (!string.IsNullOrEmpty(patientZip))
+                {
+                    //Console.WriteLine("Patient ZIP code: " + patientZip);
+                    writer.WriteLine("Patient ZIP code: " + patientZip);
+                }
+                if (!string.IsNullOrEmpty(patientCountry))
+                {
+                    //Console.WriteLine("Patient Country: " + patientCountry);
+                    writer.WriteLine("Patient Country: " + patientCountry);
+                }
+                if (!string.IsNullOrEmpty(dobFormatted))
+                {
+                    //Console.WriteLine("Date of birth: " + dobFormatted);
+                    writer.WriteLine("Date of birth: " + dobFormatted);
+                }
+                if (!string.IsNullOrEmpty(patientPhoneNumber))
+                {
+                    //Console.WriteLine("Patient PhNO: " + patientPhoneNumber);
+                    writer.WriteLine("Patient PhNO: " + patientPhoneNumber);
+                }
+                if (!string.IsNullOrEmpty(primaryLanguage))
+                {
+                    //Console.WriteLine("Primary Language: " + primaryLanguage);
+                    writer.WriteLine("Primary Language: " + primaryLanguage);
+                }
+                if (!string.IsNullOrEmpty(maritalStatus))
+                {
+                    //Console.WriteLine("Marital Status: " + maritalStatus);
+                    writer.WriteLine("Marital Status: " + maritalStatus);
+                    switch (maritalStatus)
+                    {
+                        case "S":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Single");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Single");
+                            break;
+                        case "A":
+                            //Console.WriteLine("Marital Status:" + maritalStatus + " - Seperated");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Seperated");
+                            break;
+                        case "B":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Unmarried");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Unmarried");
+                            break;
+                        case "C":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Common Law");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Common Law");
+                            break;
+                        case "D":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Divorced");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Divorced");
+                            break;
+                        case "E":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Legally Seperated");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Legally Seperated");
+                            break;
+                        case "G":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Living Together");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Living Together");
+                            break;
+                        case "I":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Interlocutory");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Interlocutory");
+                            break;
+                        case "M":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Married");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Married");
+                            break;
+                        case "N":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Annulled");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Annulled");
+                            break;
+                        case "O":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Other");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Other");
+                            break;
+                        case "P":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Domestic Partner");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Domestic Partner");
+                            break;
+                        case "R":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Registered Domestic Partner");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Registered Domestic Partner");
+                            break;
+                        case "T":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Unreported");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Unreported");
+                            break;
+                        case "W":
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Widowed");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Widowed");
+                            break;
+                        // add other cases here
+                        default:
+                            //Console.WriteLine("Marital Status: " + maritalStatus + " - Unknown");
+                            writer.WriteLine("Marital Status: " + maritalStatus + " - Unknown");
+                            break;
+
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(ssnNumber))
+                {
+                    //Console.WriteLine("SSN Number: " + ssnNumber);
+                    writer.WriteLine("SSN Number: " + ssnNumber);
+                }
+                //PV1 fields--------------------------------------------------------------------------------------------
+                //Console.WriteLine("PV1 Fields:");
+                // writer.WriteLine("PV1 Fields:");
+
+                // check if there is any data to print
+                bool hasDatapv1 = !string.IsNullOrEmpty(patientClass) || !string.IsNullOrEmpty(pointofCare) || !string.IsNullOrEmpty(room) || !string.IsNullOrEmpty(bed)
+                || !string.IsNullOrEmpty(facilityName) || !string.IsNullOrEmpty(consultingDoctorIdnumber) || !string.IsNullOrEmpty(familyName) || !string.IsNullOrEmpty(givenName) || !string.IsNullOrEmpty(secondandFurthernames) || !string.IsNullOrEmpty(financialClass) || !string.IsNullOrEmpty(courtesyCode) || !string.IsNullOrEmpty(totalCharges);
+                if (hasDatapv1)
+                {
+                    // print the heading only if there is data
+                    writer.WriteLine(new string('-', 20));
+                    writer.WriteLine("****PV1 Fields****:\n" + new string('-', 20));
+                }
+                if (!string.IsNullOrEmpty(patientClass))
+                {
+                    //Console.WriteLine("Patient Class: " + patientClass);
+                    writer.WriteLine("Patient Class:  " + patientClass);
+                    switch (patientClass)
+                    {
+                        case "B":
+                            //Console.WriteLine("Patient Class: " + patientClass + " - Obstetrics");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Obstetrics");
+                            break;
+                        case "C":
+                            //Console.WriteLine("Patient Class:" + patientClass + " - Commercial Account");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Commercial Account");
+                            break;
+                        case "E":
+                            //Console.WriteLine("Patient Class: " + patientClass + " - Emergency");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Emergency");
+                            break;
+                        case "I":
+                            //Console.WriteLine("Patient Class: " + patientClass + " - Inpatient");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Inpatient");
+                            break;
+                        case "N":
+                            //Console.WriteLine("Patient Class: " + patientClass + " - Not Applicable");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Not Applicable");
+                            break;
+                        case "O":
+                            //Console.WriteLine("Patient Class: " + patientClass + " - Outpatient");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Outpatient");
+                            break;
+                        case "P":
+                            //Console.WriteLine("Patient Class: " + patientClass + " - Preadmit");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Preadmit");
+                            break;
+                        case "R":
+                            //Console.WriteLine("Patient Class: " + patientClass + " - Recurring patient");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Recurring patient");
+                            break;
+                        // add other cases here
+                        default:
+                            //Console.WriteLine("Patient Class: " + patientClass + " - Unknown");
+                            writer.WriteLine("Patient Class: " + patientClass + " - Unknown");
+                            break;
+                    }
+                }
+                if (!string.IsNullOrEmpty(pointofCare))
+                {
+                    //Console.WriteLine("Point of Care: " + pointofCare);
+                    writer.WriteLine("Poin of Care:  " + pointofCare);
+                }
+                if (!string.IsNullOrEmpty(room))
+                {
+                    //Console.WriteLine("Room: " + room);
+                    writer.WriteLine("Room:  " + room);
+                }
+                if (!string.IsNullOrEmpty(bed))
+                {
+                    //Console.WriteLine("Bed: " + bed);
+                    writer.WriteLine("Bed:  " + bed);
+                }
+                if (!string.IsNullOrEmpty(facilityName))
+                {
+                    //Console.WriteLine("Facility Name: " + facilityName);
+                    writer.WriteLine("Facility Name: " + facilityName);
+                }
+                if (!string.IsNullOrEmpty(consultingDoctorIdnumber))
+                {
+                    //Console.WriteLine("Consulting Doctor ID Number: " + consultingDoctorIdnumber);
+                    writer.WriteLine("Consulting Doctor ID Number:  " + consultingDoctorIdnumber);
+                }
+                if (!string.IsNullOrEmpty(familyName))
+                {
+                    //Console.WriteLine("Family Name: " + familyName);
+                    writer.WriteLine("Family Name:  " + familyName);
+                }
+                if (!string.IsNullOrEmpty(givenName))
+                {
+                    //Console.WriteLine("Given Name: " + givenName);
+                    writer.WriteLine("Given Name:  " + givenName);
+                }
+                if (!string.IsNullOrEmpty(secondandFurthernames))
+                {
+                    //Console.WriteLine("Second Names or Initials: " + secondandFurthernames);
+                    writer.WriteLine("Second Names or Initials:  " + secondandFurthernames);
+                }
+                if (!string.IsNullOrEmpty(financialClass))
+                {
+                    //Console.WriteLine("Financial Class: " + financialClass);
+                    writer.WriteLine("Financial Class:  " + financialClass);
+                }
+                if (!string.IsNullOrEmpty(courtesyCode))
+                {
+                    //Console.WriteLine("Courtesy Code: " + courtesyCode);
+                    writer.WriteLine("Courtesy Code: " + courtesyCode);
+                }
+                if (!string.IsNullOrEmpty(totalCharges))
+                {
+                    //Console.WriteLine("Total Charges: " + totalCharges);
+                    writer.WriteLine("Total Charges:  " + totalCharges);
+                }
+                //AL1 field-----------------------------------------------------------------------------------------------------------------
+                // Console.WriteLine("Patient Allergy Information:");
+               // writer.WriteLine("Patient Allergy Information(AL1):");
+             //   if (!string.IsNullOrEmpty(setId))
+            //    {
+                    //Console.WriteLine("Set Id: " + setId);
+                   // writer.WriteLine("Set Id: " + setId);
+               // }
+                // check if there is any data to print
+                bool hasData = !string.IsNullOrEmpty(setId) || !string.IsNullOrEmpty(allergyTypecode);
+
+                if (hasData)
+                {
+                    // print the heading only if there is data
+                    writer.WriteLine(new string('-', 20));
+                    writer.WriteLine("****Patient Allergy Information(AL1) Fields****:\n" + new string('-', 20));
+                }
+
+                if (!string.IsNullOrEmpty(setId))
+                {
+                    writer.WriteLine("Set Id: " + setId);
+                }
+
+                if (!string.IsNullOrEmpty(allergyTypecode))
+                {
+                    //Console.WriteLine("Allergy type code: " + allergyTypecode);
+                    writer.WriteLine("Allergy type code: " + allergyTypecode);
+                    switch (allergyTypecode)
+                    {
+                        case "AA":
+                           // Console.WriteLine("Allergy type code: " + allergyTypecode + " - Animal Allergy");
+                            writer.WriteLine("Allergy type code: " + allergyTypecode + " - Animal Allergy");
+                            break;
+                        case "DA":
+                           // Console.WriteLine("Allergy type code:" + allergyTypecode + " - Drug Allergy");
+                            writer.WriteLine("Allergy type code: " + allergyTypecode + " - Drug Allergy");
+                            break;
+                        case "EA":
+                           // Console.WriteLine("Allergy type code: " + allergyTypecode + " - Environmental Allergy");
+                            writer.WriteLine("Allergy type code:" + allergyTypecode + " - Environmental Allergy");
+                            break;
+                        case "FA":
+                            //Console.WriteLine("Allergy type code: " + allergyTypecode + " - Food Allergy");
+                            writer.WriteLine("Allergy type code:" + allergyTypecode + " - Food Allergy");
+                            break;
+                        case "LA":
+                            //Console.WriteLine("Allergy type code: " + allergyTypecode + " - Pollen Allergy");
+                            writer.WriteLine("Allergy type code: " + allergyTypecode + " - Pollen Allergy");
+                            break;
+                        case "MA":
+                           // Console.WriteLine("Allergy type code: " + allergyTypecode + " - Miscellaneous Allergy");
+                            writer.WriteLine("Allergy type code:" + allergyTypecode + " - Miscellaneous Allergy");
+                            break;
+                        case "MC":
+                            //Console.WriteLine("Allergy type code: " + allergyTypecode + " - Miscellaneous Contridiction");
+                            writer.WriteLine("Allergy type code: " + allergyTypecode + " - Miscellaneous Contridiction");
+                            break;
+                        case "PA":
+                            //Console.WriteLine("Allergy type code: " + allergyTypecode + " - Plant Allergy");
+                            writer.WriteLine("Allergy type code: " + allergyTypecode + " - Plant Allergy");
+                            break;
+                        // add other cases here
+                        default:
+                            //Console.WriteLine("Allergy type code: " + allergyTypecode + " - Unknown");
+                            writer.WriteLine("Allergy type code: " + allergyTypecode + " - Unknown");
+                            break;
+                    }
+                }
+            }
+        }
+        Console.WriteLine("Conversion Complete");
+    }
+}
